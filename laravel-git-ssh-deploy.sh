@@ -33,14 +33,20 @@ ssh $REMOTE_USERNAME@$REMOTE_DOMAIN << EOF
     # Fresh installation (move repo files)
     mv deploy/repository/{.[!.],}* .
     git checkout $BRANCH
-    composer install
     chmod -R o+w storage
+    chmod -R o+w bootstrap/cache
+    composer install
     echo "REMEMBER: Setup your .env file and set application key"
   else
-    # Updating git on previously deployed project (git pull)
-    git remote set-url origin deploy/repository
-    git branch --set-upstream-to=origin/$BRANCH
+    # Updating git on previously deployed project (git reset)
+    git remote remove origin
+    git remote add origin deploy/repository
+    cd deploy/repository
+    git checkout $BRANCH -f
+    cd ../..
+    git fetch
     git checkout $BRANCH
+    git branch --set-upstream-to=origin/$BRANCH $BRANCH
     git pull
   fi
 
